@@ -142,6 +142,11 @@ with col3:
 with col4:
     font_choice = st.selectbox("폰트 선택", options=list(FONT_PATHS.keys()))
 
+st.write("JAVA_HOME:", os.environ.get('JAVA_HOME'))
+st.write("LD_LIBRARY_PATH:", os.environ.get('LD_LIBRARY_PATH'))
+st.write("Java 버전:")
+os.system("java -version")
+
 # 워드클라우드 생성 버튼
 if st.button("워드클라우드 생성"):
     if not df.empty:
