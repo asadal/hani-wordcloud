@@ -44,7 +44,7 @@ FONT_PATHS = {
     '나눔바른고딕': 'fonts/NanumBarunGothic.ttf',
     '나눔명조': 'fonts/NanumMyeongjo.ttf',
     'G마켓산스': 'fonts/GmarketSans.ttf',
-    'Paperlogy': 'fonts/Paperlogy.ttf'
+    '페이퍼로지': 'fonts/Paperlogy.ttf'
 }
 
 MASK_IMAGES = {
