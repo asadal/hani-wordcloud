@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
@@ -8,18 +9,14 @@ import numpy as np
 import openpyxl
 import pandas as pd
 from io import BytesIO
-import os
-import sys
 
 # 환경 변수 설정 (Java 경로 지정)
-# JAVA_HOME과 LD_LIBRARY_PATH를 설정하여 JVM을 찾을 수 있도록 합니다.
-if 'JAVA_HOME' not in os.environ:
-    # 일반적으로 OpenJDK 11의 경로
-    os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-11-openjdk-amd64'
-    os.environ['LD_LIBRARY_PATH'] = os.environ.get('LD_LIBRARY_PATH', '') + ':/usr/lib/jvm/java-11-openjdk-amd64/lib/server'
+# Streamlit Cloud에서는 기본적으로 OpenJDK 11이 설치되어 있으므로, JAVA_HOME과 LD_LIBRARY_PATH를 설정합니다.
+os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-11-openjdk-amd64'
+os.environ['LD_LIBRARY_PATH'] = '/usr/lib/jvm/java-11-openjdk-amd64/lib/server'
 
 # 페이지 설정
-st.set_page_config(page_title="워드클라우드 생성기")
+st.set_page_config(page_title="워드클라우드 생성기", layout="wide")
 
 # 제목 및 설명
 st.title("워드클라우드 생성기")
@@ -45,7 +42,11 @@ MASK_IMAGES = {
     '직사각형': 'masks/rectangle.jpg'
 }
 
-# 3단계 데이터 입력 선택
+# 초기 세션 상태 설정
+if 'wordcloud_generated' not in st.session_state:
+    st.session_state.wordcloud_generated = False
+
+# 1. 데이터 입력 섹션
 st.header("1. 데이터 입력")
 input_method = st.radio("데이터 입력 방법을 선택하세요:", ("텍스트 파일 업로드", "엑셀 파일 업로드", "직접 입력"))
 
@@ -114,7 +115,7 @@ elif input_method == "직접 입력":
         except Exception as e:
             st.error(f"직접 입력 처리 중 오류가 발생했습니다: {e}")
 
-# 데이터프레임 표시 및 불필요한 줄 삭제
+# 2. 데이터 검토 및 정제 섹션
 if not df.empty:
     st.header("2. 데이터 검토 및 정제")
     st.write("데이터프레임을 확인하고, 불필요한 단어를 삭제하세요.")
@@ -126,7 +127,7 @@ if not df.empty:
 else:
     st.warning("데이터가 없습니다. 데이터를 입력하세요.")
 
-# 옵션 설정
+# 3. 워드클라우드 옵션 설정 섹션
 st.header("3. 워드클라우드 옵션 설정")
 col1, col2, col3, col4 = st.columns(4)
 
@@ -142,11 +143,6 @@ with col3:
 with col4:
     font_choice = st.selectbox("폰트 선택", options=list(FONT_PATHS.keys()))
 
-# st.write("JAVA_HOME:", os.environ.get('JAVA_HOME'))
-# st.write("LD_LIBRARY_PATH:", os.environ.get('LD_LIBRARY_PATH'))
-# st.write("Java 버전:")
-# os.system("java -version")
-
 # 워드클라우드 생성 버튼
 if st.button("워드클라우드 생성"):
     if not df.empty:
@@ -155,23 +151,23 @@ if st.button("워드클라우드 생성"):
             mask_path = MASK_IMAGES[mask_choice]
             mask_image = Image.open(mask_path).convert("L")
             mask_array = np.array(mask_image)
-            
+
             # 선택한 폰트 경로
             font_path = FONT_PATHS[font_choice]
             if not os.path.exists(font_path):
                 st.error(f"폰트 파일이 존재하지 않습니다: {font_path}")
                 st.stop()
-            
+
             # 단어 빈도수 딕셔너리로 변환
             word_freq = dict(zip(df['단어'], df['빈도수']))
-            
+
             # 워드클라우드 생성
             wc = WordCloud(
                 font_path=font_path,
                 background_color="white",
                 mask=mask_array,
-                width=3600,
-                height=3600,
+                width=1800,
+                height=1800,
                 scale=2.0,
                 max_words=max_words,
                 colormap=theme,
@@ -181,44 +177,62 @@ if st.button("워드클라우드 생성"):
                 prefer_horizontal=0.9,
                 collocations=False
             )
-            
+
             wc.generate_from_frequencies(word_freq)
-            
+
             # 워드클라우드 이미지 생성
-            fig, ax = plt.subplots(figsize=(10,10))
+            fig, ax = plt.subplots(figsize=(10, 10))
             ax.imshow(wc, interpolation="bilinear")
             ax.axis("off")
             plt.tight_layout(pad=0)
             st.pyplot(fig)
-            
-            # 이미지 다운로드 (수정된 부분)
+
+            # 워드클라우드 이미지 버퍼에 저장
             img_buffer = BytesIO()
             image = wc.to_image()
             image.save(img_buffer, format='PNG')
             img_buffer.seek(0)
+
+            # 데이터 엑셀 파일 버퍼에 저장
+            excel_buffer = BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Word Frequency')
+            excel_buffer.seek(0)
+
+            # 워드클라우드 이미지 다운로드 버튼
             st.download_button(
                 label="워드클라우드 이미지 다운로드",
                 data=img_buffer,
                 file_name="wordcloud.png",
                 mime="image/png"
             )
-            
-            # 데이터 다운로드
-            excel_buffer = BytesIO()
-            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='Word Frequency')
-            excel_buffer.seek(0)
+
+            # 데이터 엑셀 파일 다운로드 버튼
             st.download_button(
                 label="데이터 엑셀 파일 다운로드",
                 data=excel_buffer,
                 file_name="word_count_top_100.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
+            # 세션 상태 업데이트
+            st.session_state.wordcloud_generated = True
+
         except Exception as e:
             st.error(f"워드클라우드 생성 중 오류가 발생했습니다: {e}")
     else:
         st.error("데이터프레임이 비어있습니다. 데이터를 입력하고 불필요한 단어를 삭제하세요.")
 
+# 다운로드 버튼을 세션 상태를 통해 지속적으로 표시
+if st.session_state.get('wordcloud_generated', False):
+    st.header("다운로드")
+    # 워드클라우드 이미지와 데이터 다운로드 버튼은 이미 위에서 설정되었으므로, 여기서는 추가적인 조치가 필요하지 않습니다.
+    # 만약 버튼이 사라지는 문제가 계속된다면, '워드클라우드 생성' 버튼을 클릭하지 않고 다른 인터랙션을 하지 않은 상태에서 테스트해보세요.
+    pass
+
 # Reload 버튼
 if st.button("Reload"):
+    # 세션 상태 초기화
+    st.session_state.wordcloud_generated = False
+    # 애플리케이션 재실행
     st.rerun()
