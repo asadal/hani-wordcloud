@@ -1,7 +1,9 @@
 streamlit
 wordcloud
 konlpy
+jpype1
 pillow
 numpy
 openpyxl
 matplotlib
+pandas
