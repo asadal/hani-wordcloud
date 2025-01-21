@@ -16,13 +16,27 @@ os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-11-openjdk-amd64'
 os.environ['LD_LIBRARY_PATH'] = '/usr/lib/jvm/java-11-openjdk-amd64/lib/server'
 
 # 페이지 설정
-st.set_page_config(page_title="워드클라우드 생성기")
+st.set_page_config(page_title="WordCloud Generator")
 
-# 제목 및 설명
-st.title("워드클라우드 생성기")
+# 제목 및 Reload 버튼을 옆에 배치하기 위한 컬럼 설정
+col_title, col_reload = st.columns([4, 1])
+
+with col_title:
+    st.title("WordCloud Generator")
+
+with col_reload:
+    if st.button("Reload ⟳"):
+        # 세션 상태 초기화
+        st.session_state.wordcloud_generated = False
+        st.session_state.img_bytes = None
+        st.session_state.excel_bytes = None
+        st.session_state.custom_mask = None
+        # 애플리케이션 재실행
+        st.rerun()  # 최신 Streamlit에서는 st.rerun() 사용 가능. 지원되지 않으면 st.experimental_rerun() 사용
+
 st.markdown("""
-이 애플리케이션은 텍스트 파일, 엑셀 파일, 또는 직접 입력을 통해 단어 빈도수를 분석하고 워드클라우드를 생성합니다.
-옵션을 설정하여 최대 단어 수, 테마, 마스크, 폰트를 선택할 수 있습니다.
+텍스트 파일, 엑셀 파일, 또는 직접 입력을 통해 단어 빈도수를 분석하고 워드클라우드를 생성합니다.
+최대 단어 수, 테마, 마스크, 폰트를 선택할 수 있습니다.
 """)
 
 # 폰트 및 마스크 이미지 경로 설정
@@ -30,7 +44,7 @@ FONT_PATHS = {
     '나눔바른고딕': 'fonts/NanumBarunGothic.ttf',
     '나눔명조': 'fonts/NanumMyeongjo.ttf',
     'G마켓산스': 'fonts/GmarketSans.ttf',
-    '페이퍼로지': 'fonts/Paperlogy.ttf'
+    'Paperlogy': 'fonts/Paperlogy.ttf'
 }
 
 MASK_IMAGES = {
@@ -40,11 +54,21 @@ MASK_IMAGES = {
     '★': 'masks/star.jpg',
     '▲': 'masks/triangle.jpg',
     '♥': 'masks/heart.jpg',
+    '이미지 업로드': '이미지 업로드'
 }
 
 # 초기 세션 상태 설정
 if 'wordcloud_generated' not in st.session_state:
     st.session_state.wordcloud_generated = False
+
+if 'img_bytes' not in st.session_state:
+    st.session_state.img_bytes = None
+
+if 'excel_bytes' not in st.session_state:
+    st.session_state.excel_bytes = None
+
+if 'custom_mask' not in st.session_state:
+    st.session_state.custom_mask = None
 
 # 1. 데이터 입력 섹션
 st.header("1. 데이터 입력")
@@ -139,6 +163,22 @@ with col2:
 
 with col3:
     mask_choice = st.selectbox("마스크 선택", options=list(MASK_IMAGES.keys()))
+    
+    # '직접 업로드' 선택 시 파일 업로더 표시
+    if mask_choice == '이미지 업로드':
+
+```python
+        custom_mask_file = st.file_uploader("업로드할 마스크 이미지를 선택하세요(jpg)", type=["jpg", "jpeg"])
+        if custom_mask_file is not None:
+            try:
+                custom_mask_image = Image.open(custom_mask_file).convert("L")  # 그레이스케일로 변환
+                custom_mask_array = np.array(custom_mask_image)
+                st.session_state.custom_mask = custom_mask_array
+                st.success("마스크 이미지를 성공적으로 업로드했습니다.")
+            except Exception as e:
+                st.error(f"마스크 이미지 처리 중 오류가 발생했습니다: {e}")
+    else:
+        st.session_state.custom_mask = None  # 다른 마스크 선택 시 커스텀 마스크 초기화
 
 with col4:
     font_choice = st.selectbox("폰트 선택", options=list(FONT_PATHS.keys()))
@@ -148,19 +188,26 @@ if st.button("워드클라우드 생성"):
     if not df.empty:
         try:
             # 선택한 마스크 이미지 로드
-            mask_path = MASK_IMAGES[mask_choice]
-            mask_image = Image.open(mask_path).convert("L")
-            mask_array = np.array(mask_image)
-
+            if mask_choice == '이미지 업로드':
+                if st.session_state.custom_mask is not None:
+                    mask_array = st.session_state.custom_mask
+                else:
+                    st.error("마스크 이미지를 업로드하지 않았습니다.")
+                    st.stop()
+            else:
+                mask_path = MASK_IMAGES[mask_choice]
+                mask_image = Image.open(mask_path).convert("L")
+                mask_array = np.array(mask_image)
+        
             # 선택한 폰트 경로
             font_path = FONT_PATHS[font_choice]
             if not os.path.exists(font_path):
                 st.error(f"폰트 파일이 존재하지 않습니다: {font_path}")
                 st.stop()
-
+        
             # 단어 빈도수 딕셔너리로 변환
             word_freq = dict(zip(df['단어'], df['빈도수']))
-
+        
             # 워드클라우드 생성
             wc = WordCloud(
                 font_path=font_path,
@@ -177,62 +224,57 @@ if st.button("워드클라우드 생성"):
                 prefer_horizontal=0.9,
                 collocations=False
             )
-
+        
             wc.generate_from_frequencies(word_freq)
-
+        
             # 워드클라우드 이미지 생성
             fig, ax = plt.subplots(figsize=(10, 10))
             ax.imshow(wc, interpolation="bilinear")
             ax.axis("off")
             plt.tight_layout(pad=0)
             st.pyplot(fig)
-
+        
             # 워드클라우드 이미지 버퍼에 저장
             img_buffer = BytesIO()
             image = wc.to_image()
             image.save(img_buffer, format='PNG')
-            img_buffer.seek(0)
-
+            img_bytes = img_buffer.getvalue()
+            st.session_state.img_bytes = img_bytes
+        
             # 데이터 엑셀 파일 버퍼에 저장
             excel_buffer = BytesIO()
             with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Word Frequency')
-            excel_buffer.seek(0)
-
-            # 워드클라우드 이미지 다운로드 버튼
-            st.download_button(
-                label="워드클라우드 이미지 다운로드",
-                data=img_buffer,
-                file_name="wordcloud.png",
-                mime="image/png"
-            )
-
-            # 데이터 엑셀 파일 다운로드 버튼
-            st.download_button(
-                label="데이터 엑셀 파일 다운로드",
-                data=excel_buffer,
-                file_name="word_count_top_100.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
+            excel_bytes = excel_buffer.getvalue()
+            st.session_state.excel_bytes = excel_bytes
+        
             # 세션 상태 업데이트
             st.session_state.wordcloud_generated = True
-
+        
+            st.success("워드클라우드를 성공적으로 생성했습니다.")
+        
         except Exception as e:
             st.error(f"워드클라우드 생성 중 오류가 발생했습니다: {e}")
     else:
-        st.error("데이터프레임이 비어있습니다. 데이터를 입력하고 불필요한 단어를 삭제하세요.")
+        st.error("데이터프레임이 비어 있습니다. 데이터를 입력하고 불필요한 단어를 삭제하세요.")
 
 # 다운로드 버튼을 세션 상태를 통해 지속적으로 표시
 if st.session_state.get('wordcloud_generated', False):
     st.header("다운로드")
-    # 워드클라우드 이미지와 데이터 다운로드 버튼은 이미 위에서 설정되었으므로, 여기서는 추가적인 조치가 필요하지 않습니다.
-    # 만약 버튼이 사라지는 문제가 계속된다면, '워드클라우드 생성' 버튼을 클릭하지 않고 다른 인터랙션을 하지 않은 상태에서 테스트해보세요.
-    pass
+    # 워드클라우드 이미지 다운로드 버튼
+    if st.session_state.img_bytes:
+        st.download_button(
+            label="워드클라우드 이미지 다운로드",
+            data=st.session_state.img_bytes,
+            file_name="wordcloud.png",
+            mime="image/png"
+        )
 
-# Reload 버튼
-if st.button("Reload"):
-    # 세션 상태 초기화
-    st.session_state.wordcloud_generated = False
-    # 애플리케이션 재실행
-    st.rerun()
+    # 데이터 엑셀 파일 다운로드 버튼
+    if st.session_state.excel_bytes:
+        st.download_button(
+            label="데이터 파일 다운로드",
+            data=st.session_state.excel_bytes,
+            file_name="word_count_top_100.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
