@@ -166,8 +166,6 @@ with col3:
     
     # '직접 업로드' 선택 시 파일 업로더 표시
     if mask_choice == '이미지 업로드':
-
-```python
         custom_mask_file = st.file_uploader("업로드할 마스크 이미지를 선택하세요(jpg)", type=["jpg", "jpeg"])
         if custom_mask_file is not None:
             try:
