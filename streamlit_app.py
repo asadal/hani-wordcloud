@@ -30,16 +30,16 @@ FONT_PATHS = {
     '나눔바른고딕': 'fonts/NanumBarunGothic.ttf',
     '나눔명조': 'fonts/NanumMyeongjo.ttf',
     'G마켓산스': 'fonts/GmarketSans.ttf',
-    'Paperlogy': 'fonts/Paperlogy.ttf'
+    '페이퍼로지': 'fonts/Paperlogy.ttf'
 }
 
 MASK_IMAGES = {
-    '동그라미': 'masks/circle.jpg',
-    '정사각형': 'masks/square.jpg',
-    '세모': 'masks/triangle.jpg',
-    '별': 'masks/star.jpg',
-    '하트': 'masks/heart.jpg',
-    '직사각형': 'masks/rectangle.jpg'
+    '▆': 'masks/rectangle.jpg',
+    '■': 'masks/square.jpg',
+    '●': 'masks/circle.jpg',
+    '★': 'masks/star.jpg',
+    '▲': 'masks/triangle.jpg',
+    '♥': 'masks/heart.jpg',
 }
 
 # 초기 세션 상태 설정
