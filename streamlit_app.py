@@ -196,4 +196,4 @@ if st.button("워드클라우드 생성"):
 
 # Reload 버튼
 if st.button("Reload"):
-    st.experimental_rerun()
+    st.rerun()
