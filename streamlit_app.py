@@ -165,7 +165,7 @@ mask_choice = st.selectbox("마스크 선택", options=list(MASK_IMAGES.keys()))
 
 # '직접 업로드' 선택 시 파일 업로더 표시
 if mask_choice == '이미지 업로드':
-    custom_mask_file = st.file_uploader("업로드할 마스크 이미지를 선택하세요 (jpg, png)", type=["jpg", "jpeg", "png"])
+    custom_mask_file = st.file_uploader("업로드할 마스크 이미지를 선택하세요 (jpg)", type=["jpg", "jpeg"])
     if custom_mask_file is not None:
         try:
             custom_mask_image = Image.open(custom_mask_file).convert("L")  # 그레이스케일로 변환
