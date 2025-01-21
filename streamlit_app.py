@@ -191,9 +191,10 @@ if st.button("워드클라우드 생성"):
             plt.tight_layout(pad=0)
             st.pyplot(fig)
             
-            # 이미지 다운로드
+            # 이미지 다운로드 (수정된 부분)
             img_buffer = BytesIO()
-            wc.to_file(img_buffer, format='PNG')
+            image = wc.to_image()
+            image.save(img_buffer, format='PNG')
             img_buffer.seek(0)
             st.download_button(
                 label="워드클라우드 이미지 다운로드",
