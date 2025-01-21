@@ -16,7 +16,7 @@ os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-11-openjdk-amd64'
 os.environ['LD_LIBRARY_PATH'] = '/usr/lib/jvm/java-11-openjdk-amd64/lib/server'
 
 # 페이지 설정
-st.set_page_config(page_title="워드클라우드 생성기", layout="wide")
+st.set_page_config(page_title="워드클라우드 생성기")
 
 # 제목 및 설명
 st.title("워드클라우드 생성기")
