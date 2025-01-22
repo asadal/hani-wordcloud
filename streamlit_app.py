@@ -24,7 +24,6 @@ nltk.download('stopwords')
 os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-11-openjdk-amd64'
 os.environ['LD_LIBRARY_PATH'] = '/usr/lib/jvm/java-11-openjdk-amd64/lib/server'
 
-
 # 페이지 설정
 st.set_page_config(
         page_title="WordCloud Generator",
@@ -90,9 +89,17 @@ st.header("1. 데이터 입력")
 input_method = st.radio("데이터 입력 방법을 선택하세요:", ("텍스트 파일 업로드", "엑셀 파일 업로드", "직접 입력"))
 
 # 언어 선택 섹션
-st.subheader("입력 언어 선택")
+st.subheader("입력 언어")
 language = st.selectbox("언어를 선택하세요:", ("한국어", "영어"))
 
+# 데이터프레임 초기화
+df = pd.DataFrame(columns=['단어', '빈도수'])
+
+if input_method == "텍스트 파일 업로드":
+    txt_file = st.file_uploader("텍스트 파일을 업로드하세요(.txt)", type=["txt"])
+    if txt_file is not None:
+        try:
+            text = txt_file.read().decode('utf-8')
             if language == "한국어":
                 okt = Okt()
                 words_with_pos = okt.pos(text, stem=True)
@@ -178,10 +185,10 @@ st.header("3. 워드클라우드 옵션 설정")
 max_words = st.slider("최대 단어 수", min_value=20, max_value=200, value=100, step=10)
 
 # 테마 선택
-theme = st.selectbox("테마 선택 (Colormap)", options=['viridis', 'plasma', 'inferno', 'magma', 'cividis'])
+theme = st.selectbox("테마(Colormap)", options=['viridis', 'plasma', 'inferno', 'magma', 'cividis'])
 
 # 마스크 선택
-mask_choice = st.selectbox("마스크 선택", options=list(MASK_IMAGES.keys()))
+mask_choice = st.selectbox("마스크(모양))", options=list(MASK_IMAGES.keys()))
 
 # '직접 업로드' 선택 시 파일 업로더 표시
 if mask_choice == '이미지 업로드':
@@ -198,14 +205,14 @@ else:
     st.session_state.custom_mask = None  # 다른 마스크 선택 시 커스텀 마스크 초기화
 
 # 폰트 선택
-font_choice = st.selectbox("폰트 선택", options=list(FONT_PATHS.keys()))
+font_choice = st.selectbox("글꼴", options=list(FONT_PATHS.keys()))
 
 # 워드클라우드 생성 버튼
 if st.button("워드클라우드 생성"):
     if not df.empty:
         try:
             # 선택한 마스크 이미지 로드
-            if mask_choice == '직접 업로드':
+            if mask_choice == '이미지 업로드':
                 if st.session_state.custom_mask is not None:
                     mask_array = st.session_state.custom_mask
                 else:
@@ -219,7 +226,7 @@ if st.button("워드클라우드 생성"):
             # 선택한 폰트 경로
             font_path = FONT_PATHS[font_choice]
             if not os.path.exists(font_path):
-                st.error(f"폰트 파일이 존재하지 않습니다: {font_path}")
+                st.error(f"글꼴 파일이 존재하지 않습니다: {font_path}")
                 st.stop()
 
             # 단어 빈도수 딕셔너리로 변환
