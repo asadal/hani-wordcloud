@@ -158,10 +158,10 @@ st.header("3. 워드클라우드 옵션 설정")
 max_words = st.slider("최대 단어 수", min_value=20, max_value=200, value=100, step=10)
 
 # 테마 선택
-theme = st.selectbox("테마 선택 (Colormap)", options=['viridis', 'plasma', 'inferno', 'magma', 'cividis'])
+theme = st.selectbox("테마(Colormap)", options=['viridis', 'plasma', 'inferno', 'magma', 'cividis'])
 
 # 마스크 선택
-mask_choice = st.selectbox("마스크 선택", options=list(MASK_IMAGES.keys()))
+mask_choice = st.selectbox("마스크(모양)", options=list(MASK_IMAGES.keys()))
 
 # '직접 업로드' 선택 시 파일 업로더 표시
 if mask_choice == '이미지 업로드':
@@ -178,7 +178,7 @@ else:
     st.session_state.custom_mask = None  # 다른 마스크 선택 시 커스텀 마스크 초기화
 
 # 폰트 선택
-font_choice = st.selectbox("폰트 선택", options=list(FONT_PATHS.keys()))
+font_choice = st.selectbox("글꼴", options=list(FONT_PATHS.keys()))
 # 워드클라우드 생성 버튼
 if st.button("워드클라우드 생성"):
     if not df.empty:
