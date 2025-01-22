@@ -15,9 +15,9 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-# nltk 불용어 데이터 다운로드 (최초 실행 시 필요)
-nltk.download('punkt')
-nltk.download('stopwords')
+# # nltk 불용어 데이터 다운로드 (최초 실행 시 필요)
+# nltk.download('punkt')
+# nltk.download('stopwords')
 
 # 환경 변수 설정 (Java 경로 지정)
 # Streamlit Cloud에서는 기본적으로 OpenJDK 11이 설치되어 있으므로, JAVA_HOME과 LD_LIBRARY_PATH를 설정합니다.
