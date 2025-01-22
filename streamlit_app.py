@@ -10,6 +10,15 @@ import openpyxl
 import pandas as pd
 from io import BytesIO
 
+# 영어 텍스트 처리를 위한 nltk 라이브러리
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+# nltk 불용어 데이터 다운로드 (최초 실행 시 필요)
+nltk.download('punkt')
+nltk.download('stopwords')
+
 # 환경 변수 설정 (Java 경로 지정)
 # Streamlit Cloud에서는 기본적으로 OpenJDK 11이 설치되어 있으므로, JAVA_HOME과 LD_LIBRARY_PATH를 설정합니다.
 os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-11-openjdk-amd64'
@@ -80,20 +89,25 @@ if 'custom_mask' not in st.session_state:
 st.header("1. 데이터 입력")
 input_method = st.radio("데이터 입력 방법을 선택하세요:", ("텍스트 파일 업로드", "엑셀 파일 업로드", "직접 입력"))
 
-# 데이터프레임 초기화
-df = pd.DataFrame(columns=['단어', '빈도수'])
+# 언어 선택 섹션
+st.subheader("입력 언어 선택")
+language = st.selectbox("언어를 선택하세요:", ("한국어", "영어"))
 
-if input_method == "텍스트 파일 업로드":
-    txt_file = st.file_uploader("텍스트 파일을 업로드하세요(.txt)", type=["txt"])
-    if txt_file is not None:
-        try:
-            text = txt_file.read().decode('utf-8')
-            okt = Okt()
-            words_with_pos = okt.pos(text, stem=True)
-            desired_pos = {'Noun'}
-            stopwords = set(['저희', '이제', '그리고', '하지만', '또한', '그', '그녀', '그들', '저'])
-            tokens = [word for word, pos in words_with_pos if pos in desired_pos and word not in stopwords]
-            tokens = [word for word in tokens if len(word) > 1]
+            if language == "한국어":
+                okt = Okt()
+                words_with_pos = okt.pos(text, stem=True)
+                desired_pos = {'Noun'}
+                # 한국어 불용어 설정
+                korean_stopwords = set(['저희', '이제', '그리고', '하지만', '또한', '그', '그녀', '그들', '저'])
+                tokens = [word for word, pos in words_with_pos if pos in desired_pos and word not in korean_stopwords]
+                tokens = [word for word in tokens if len(word) > 1]
+            elif language == "영어":
+                # 영어 불용어 설정
+                english_stopwords = set(stopwords.words('english'))
+                # 소문자 변환 후 단어 토큰화
+                tokens = word_tokenize(text.lower())
+                # 알파벳으로만 구성된 단어 필터링 및 불용어 제거
+                tokens = [word for word in tokens if word.isalpha() and word not in english_stopwords]
             count = Counter(tokens)
             top_words = count.most_common(200)
             df = pd.DataFrame(top_words, columns=['단어', '빈도수'])
@@ -123,7 +137,7 @@ elif input_method == "엑셀 파일 업로드":
 
 elif input_method == "직접 입력":
     st.subheader("단어와 빈도수를 직접 입력하세요 (각 단어와 빈도수를 콤마로 구분하고, 줄 바꿈으로 구분)")
-    user_input = st.text_area("입력 예시:\n사람,536\n사랑,423\n행복,389")
+    user_input = st.text_area("입력 예시:\n사람,536\n사랑,423\n행복,389\n\nword,frequency\nlove,423\nhappiness,389")
     if st.button("단어 추출"):
         try:
             lines = user_input.strip().split('\n')
@@ -164,10 +178,10 @@ st.header("3. 워드클라우드 옵션 설정")
 max_words = st.slider("최대 단어 수", min_value=20, max_value=200, value=100, step=10)
 
 # 테마 선택
-theme = st.selectbox("테마(Colormap)", options=['viridis', 'plasma', 'inferno', 'magma', 'cividis'])
+theme = st.selectbox("테마 선택 (Colormap)", options=['viridis', 'plasma', 'inferno', 'magma', 'cividis'])
 
 # 마스크 선택
-mask_choice = st.selectbox("마스크(모양)", options=list(MASK_IMAGES.keys()))
+mask_choice = st.selectbox("마스크 선택", options=list(MASK_IMAGES.keys()))
 
 # '직접 업로드' 선택 시 파일 업로더 표시
 if mask_choice == '이미지 업로드':
@@ -184,13 +198,14 @@ else:
     st.session_state.custom_mask = None  # 다른 마스크 선택 시 커스텀 마스크 초기화
 
 # 폰트 선택
-font_choice = st.selectbox("글꼴", options=list(FONT_PATHS.keys()))
+font_choice = st.selectbox("폰트 선택", options=list(FONT_PATHS.keys()))
+
 # 워드클라우드 생성 버튼
 if st.button("워드클라우드 생성"):
     if not df.empty:
         try:
             # 선택한 마스크 이미지 로드
-            if mask_choice == '이미지 업로드':
+            if mask_choice == '직접 업로드':
                 if st.session_state.custom_mask is not None:
                     mask_array = st.session_state.custom_mask
                 else:
@@ -200,7 +215,7 @@ if st.button("워드클라우드 생성"):
                 mask_path = MASK_IMAGES[mask_choice]
                 mask_image = Image.open(mask_path).convert("L")
                 mask_array = np.array(mask_image)
-        
+
             # 선택한 폰트 경로
             font_path = FONT_PATHS[font_choice]
             if not os.path.exists(font_path):
@@ -219,7 +234,7 @@ if st.button("워드클라우드 생성"):
             if actual_num_words < max_words:
                 st.info(f"데이터에 있는 단어 수가 설정한 최대 단어 수보다 적습니다. 최대 단어 수를 {actual_num_words}로 자동 조정했습니다.")
                 max_words = adjusted_max_words
-        
+
             # 워드클라우드 생성
             wc = WordCloud(
                 font_path=font_path,
@@ -236,35 +251,35 @@ if st.button("워드클라우드 생성"):
                 prefer_horizontal=0.9,
                 collocations=False
             )
-        
+
             wc.generate_from_frequencies(word_freq)
-        
+
             # 워드클라우드 이미지 생성
             fig, ax = plt.subplots(figsize=(10, 10))
             ax.imshow(wc, interpolation="bilinear")
             ax.axis("off")
             plt.tight_layout(pad=0)
             st.pyplot(fig)
-        
+
             # 워드클라우드 이미지 버퍼에 저장
             img_buffer = BytesIO()
             image = wc.to_image()
             image.save(img_buffer, format='PNG')
             img_bytes = img_buffer.getvalue()
             st.session_state.img_bytes = img_bytes
-        
+
             # 데이터 엑셀 파일 버퍼에 저장
             excel_buffer = BytesIO()
             with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Word Frequency')
             excel_bytes = excel_buffer.getvalue()
             st.session_state.excel_bytes = excel_bytes
-        
+
             # 세션 상태 업데이트
             st.session_state.wordcloud_generated = True
-        
+
             st.success("워드클라우드를 성공적으로 생성했습니다.")
-        
+
         except Exception as e:
             st.error(f"워드클라우드 생성 중 오류가 발생했습니다: {e}")
     else:
