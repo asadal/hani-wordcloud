@@ -87,11 +87,11 @@ if 'custom_mask' not in st.session_state:
     st.session_state.custom_mask = None
 
 # 1. 데이터 입력 섹션
-st.subheader("1. 데이터 입력")
+st.subheader("데이터 입력")
 input_method = st.radio("데이터 입력 방법을 선택하세요:", ("텍스트 파일 업로드", "엑셀 파일 업로드", "직접 입력"))
 
 # 언어 선택 섹션
-st.markdown("#### 입력 언어")
+st.markdown("**입력 언어**")
 language = st.selectbox("언어를 선택하세요:", ("한국어", "영어"))
 
 # 데이터프레임 초기화
@@ -160,7 +160,7 @@ elif input_method == "엑셀 파일 업로드":
         st.warning("예제 파일 'word_200.xlsx'가 존재하지 않습니다. 파일을 확인해주세요.")
 
 elif input_method == "직접 입력":
-    st.markdown("#### 단어와 빈도수를 직접 입력하세요")
+    st.markdown("**단어와 빈도수를 직접 입력하세요**")
     st.text("(각 단어와 빈도수를 콤마로 구분하고, 줄 바꿈으로 구분)")
     user_input = st.text_area(
     "입력란",
@@ -188,7 +188,7 @@ elif input_method == "직접 입력":
 
 # 2. 데이터 검토 및 정제 섹션
 if not df.empty:
-    st.subheader("2. 데이터 검토 및 정제")
+    st.subheader("데이터 검토 및 정제")
     st.write("데이터프레임을 확인하고, 불필요한 단어를 삭제하세요.")
     selected_words = st.multiselect("삭제할 단어를 선택하세요:", df['단어'].tolist())
     if selected_words:
@@ -199,7 +199,7 @@ else:
     st.warning("데이터가 없습니다. 데이터를 입력하세요.")
 
 # 3. 워드클라우드 옵션 설정 섹션 (세로 배치)
-st.subheader("3. 워드클라우드 옵션 설정")
+st.markdown("**워드클라우드 옵션 설정**")
 
 # 최대 단어 수 슬라이더
 max_words = st.slider("최대 단어 수", min_value=20, max_value=200, value=100, step=10)
