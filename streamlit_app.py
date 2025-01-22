@@ -146,7 +146,7 @@ elif input_method == "엑셀 파일 업로드":
 
 elif input_method == "직접 입력":
     st.subheader("단어와 빈도수를 직접 입력하세요 (각 단어와 빈도수를 콤마로 구분하고, 줄 바꿈으로 구분)")
-    user_input = st.text_area("입력 예시:\n사람,536\n사랑,423\n행복,389\n\nword,frequency\nlove,423\nhappiness,389")
+    user_input = st.markdown("입력 예시:\n사람,536\n사랑,423\n행복,389\n\nword,frequency\nlove,423\nhappiness,389")
     if st.button("단어 추출"):
         try:
             lines = user_input.strip().split('\n')
