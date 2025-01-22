@@ -206,9 +206,19 @@ if st.button("워드클라우드 생성"):
             if not os.path.exists(font_path):
                 st.error(f"폰트 파일이 존재하지 않습니다: {font_path}")
                 st.stop()
-        
+
             # 단어 빈도수 딕셔너리로 변환
             word_freq = dict(zip(df['단어'], df['빈도수']))
+
+            # 실제 단어 수 계산
+            actual_num_words = len(word_freq)
+
+            # 최대 단어 수 자동 조정
+            adjusted_max_words = min(max_words, actual_num_words)
+
+            if actual_num_words < max_words:
+                st.info(f"데이터에 있는 단어 수가 설정한 최대 단어 수보다 적습니다. 최대 단어 수를 {actual_num_words}로 자동 조정했습니다.")
+                max_words = adjusted_max_words
         
             # 워드클라우드 생성
             wc = WordCloud(
