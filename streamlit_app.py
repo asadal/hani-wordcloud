@@ -144,7 +144,7 @@ elif input_method == "엑셀 파일 업로드":
         except Exception as e:
             st.error(f"엑셀 파일 처리 중 오류가 발생했습니다: {e}")
     # 예제 파일 다운로드 버튼 추가
-    st.markdown("#### 예제 파일 다운로드")
+    st.markdown("**예제 파일 다운로드**")
     example_file_path = 'Word_200.xlsx'
     
     if os.path.exists(example_file_path):
