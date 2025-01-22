@@ -145,11 +145,11 @@ elif input_method == "엑셀 파일 업로드":
             st.error(f"엑셀 파일 처리 중 오류가 발생했습니다: {e}")
 
 elif input_method == "직접 입력":
-    st.subheader("단어와 빈도수를 직접 입력하세요 (각 단어와 빈도수를 콤마로 구분하고, 줄 바꿈으로 구분)")
-    user_input = st.text_area("입력 예시:\n
-    사람,536\n
-    사랑,423\n
-    행복,389\n")
+    st.subheader("단어와 빈도수를 직접 입력하세요")
+    st.text("(각 단어와 빈도수를 콤마로 구분하고, 줄 바꿈으로 구분)")
+    user_input = st.text_area(
+    "입력란",
+    placeholder="입력 예시:\n사람,536\n사랑,423\n행복,389"
     if st.button("단어 추출"):
         try:
             lines = user_input.strip().split('\n')
