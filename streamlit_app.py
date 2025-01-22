@@ -143,6 +143,21 @@ elif input_method == "엑셀 파일 업로드":
                 st.error("엑셀 파일에 '단어'와 '빈도수' 컬럼이 존재하지 않습니다.")
         except Exception as e:
             st.error(f"엑셀 파일 처리 중 오류가 발생했습니다: {e}")
+    # 예제 파일 다운로드 버튼 추가
+    st.markdown("### 예제 파일 다운로드")
+    example_file_path = 'word_200.xlsx'
+    
+    if os.path.exists(example_file_path):
+        with open(example_file_path, 'rb') as f:
+            example_data = f.read()
+        st.download_button(
+            label="예제 파일 다운로드",
+            data=example_data,
+            file_name='word_200.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        st.warning("예제 파일 'word_200.xlsx'가 존재하지 않습니다. 파일을 확인해주세요.")
 
 elif input_method == "직접 입력":
     st.subheader("단어와 빈도수를 직접 입력하세요")
