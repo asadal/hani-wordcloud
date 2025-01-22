@@ -19,7 +19,7 @@ os.environ['LD_LIBRARY_PATH'] = '/usr/lib/jvm/java-11-openjdk-amd64/lib/server'
 # 페이지 설정
 st.set_page_config(
         page_title="WordCloud Generator",
-        page_icon="https://cdn.creazilla.com/icons/3231954/word-cloud-icon-lg.png"
+        page_icon="https://i.ibb.co/mNYwSgz/word-cloud-icon.png"
     )
 
 # 제목 및 Reload 버튼을 옆에 배치하기 위한 컬럼 설정
@@ -38,7 +38,7 @@ with col_reload:
         # 애플리케이션 재실행
         st.rerun()  # 최신 Streamlit에서는 st.rerun() 사용 가능. 지원되지 않으면 st.experimental_rerun() 사용
 
-st.image("https://cdn.creazilla.com/icons/3231954/word-cloud-icon-lg.png", width=150)
+st.image("https://i.ibb.co/mNYwSgz/word-cloud-icon.png", width=150)
 
 st.markdown("""
 텍스트 파일, 엑셀 파일, 또는 직접 입력을 통해 단어 빈도수를 분석하고 워드클라우드를 생성합니다.
