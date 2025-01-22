@@ -149,7 +149,7 @@ elif input_method == "직접 입력":
     st.text("(각 단어와 빈도수를 콤마로 구분하고, 줄 바꿈으로 구분)")
     user_input = st.text_area(
     "입력란",
-    placeholder="입력 예시:\n사람,536\n사랑,423\n행복,389")
+    placeholder="사람,536\n사랑,423\n행복,389")
     if st.button("단어 추출"):
         try:
             lines = user_input.strip().split('\n')
