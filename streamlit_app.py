@@ -87,7 +87,7 @@ if 'custom_mask' not in st.session_state:
     st.session_state.custom_mask = None
 
 # 1. 데이터 입력 섹션
-st.subhoeader("1. 데이터 입력")
+st.subheader("1. 데이터 입력")
 input_method = st.radio("데이터 입력 방법을 선택하세요:", ("텍스트 파일 업로드", "엑셀 파일 업로드", "직접 입력"))
 
 # 언어 선택 섹션
